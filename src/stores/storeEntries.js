@@ -11,6 +11,7 @@ export const useStoreEntries = defineStore('entries', () => {
   //getters
   const groupedEntries = computed(() => {
     return entries.value.reduce((acc, entry) => {
+      if (!entry.category) entry.category = 'UNCATOREGIZED'
       if (!grouped.value && acc[''] === undefined) acc[''] = []
       const key = entry.completed ? 'completed' : grouped.value ? entry.category : ''
       if (!acc[key]) {
@@ -50,9 +51,23 @@ export const useStoreEntries = defineStore('entries', () => {
       completed: false,
       //order: generateOrderNumber(),
     })
-    //const { error } = await supabase.from("entries").insert(newEntry);
-    //await loadEntries(false);
-    entries.value.push(newEntry)
+    await supabase.from('entries').insert(newEntry)
+    await loadEntries(false)
+  }
+  const updateEntry = async (entryId, updates, refresh = true) => {
+    const { error } = await supabase.from('entries').update(updates).eq('id', entryId)
+    if (error) {
+      Dialog.create({
+        title: 'Error',
+        message: error.message,
+      })
+    } else {
+      if (refresh) await loadEntries(false)
+    }
+  }
+  const setCompleted = async (entry, val) => {
+    entry.completed = val
+    await updateEntry(entry.id, { completed: val }, false)
   }
   return {
     entries,
@@ -61,7 +76,8 @@ export const useStoreEntries = defineStore('entries', () => {
     groupedEntries,
     //actions
     init,
-
     addEntry,
+    updateEntry,
+    setCompleted,
   }
 })
