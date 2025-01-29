@@ -2,7 +2,6 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app/wrappers'
-import { LocalStorage } from 'quasar'
 
 export default defineConfig((/* ctx */) => {
   return {
@@ -47,7 +46,10 @@ export default defineConfig((/* ctx */) => {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      env: {
+        SUPABASE_URL: process.env.SUPABASE_URL ?? '',
+        SUPABASE_KEY: process.env.SUPABASE_KEY ?? '',
+      },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
