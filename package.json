@@ -10,7 +10,7 @@
     "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{js,cjs,mjs,vue}\"",
     "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
     "test": "echo \"No test specified\" && exit 0",
-    "dev": "quasar dev",
+    "dev": "dotenv -- quasar dev",
     "build": "quasar build",
     "postinstall": "quasar prepare"
   },
@@ -27,6 +27,7 @@
     "@quasar/app-vite": "^2.0.5",
     "@vue/eslint-config-prettier": "^10.1.0",
     "autoprefixer": "^10.4.2",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^9.17.0",
     "eslint-plugin-vue": "^9.32.0",
     "globals": "^15.12.0",

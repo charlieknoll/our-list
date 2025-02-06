@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from 'src/supabase/supabase'
-import { Dialog } from 'quasar'
+import { useShowErrorMessage } from 'src/use/useShowErrorMessage'
 
 export const useStoreEntries = defineStore('entries', () => {
   //state
@@ -30,17 +30,14 @@ export const useStoreEntries = defineStore('entries', () => {
       .select()
       .order('completed', { ascending: true })
     if (error) {
-      console.error('error', error)
-
-      Dialog.create({
-        title: 'Error',
-        message: `${error.message}<br><b>Hint</b><br>${error.hint}`,
-        html: true,
-      })
+      //console.error('error', error)
+      useShowErrorMessage(error)
     } else {
-      console.log('data: ', data)
-      entries.value = data
-      entriesLoaded.value = true
+      //console.log('data: ', data)
+      if (data) {
+        entries.value = data
+        entriesLoaded.value = true
+      }
     }
   }
   const init = async () => {
@@ -57,10 +54,7 @@ export const useStoreEntries = defineStore('entries', () => {
   const updateEntry = async (entryId, updates, refresh = true) => {
     const { error } = await supabase.from('entries').update(updates).eq('id', entryId)
     if (error) {
-      Dialog.create({
-        title: 'Error',
-        message: error.message,
-      })
+      useShowErrorMessage(error)
     } else {
       if (refresh) await loadEntries(false)
     }
