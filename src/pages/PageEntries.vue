@@ -26,10 +26,12 @@
             v-for="group in Object.keys(storeEntries.groupedEntries)"
             :key="group"
           >
-            <q-item-label class="bg-green-8 text-white shadow-2 q-px-sm q-py-md text-uppercase">
+            <q-item-label class="bg-green-8 text-white shadow-2 q-px-sm q-py-sm text-uppercase">
               {{ group }}
             </q-item-label>
             <q-slide-item
+              class="q-my-none q-py-none"
+              style="font-size: 16px"
               v-for="entry in storeEntries.groupedEntries[group]"
               :key="entry.id"
               left-color="grey"
@@ -43,12 +45,12 @@
                 <q-icon name="done" />
               </template>
               <q-item
-                class="q-my-none"
+                class="list-item"
                 clickable
                 v-ripple
                 :id="`id-${entry.id}`"
               >
-                <q-item-section>
+                <q-item-section class="q-my-none q-py-none">
                   <div :class="entry.completed ? 'text-strike text-italic' : ''">
                     <q-item-label dense>{{ entry.name }}</q-item-label>
                     <q-item-label
