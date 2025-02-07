@@ -8,7 +8,8 @@ export const useStoreEntries = defineStore('entries', () => {
   const entries = ref([])
   const entriesLoaded = ref(false)
   const grouped = ref(true)
-  //getters
+
+  //getter
   const groupedEntries = computed(() => {
     return entries.value.reduce((acc, entry) => {
       if (!entry.category) entry.category = 'UNCATOREGIZED'
@@ -40,24 +41,52 @@ export const useStoreEntries = defineStore('entries', () => {
       }
     }
   }
+  const subscribeEntries = () => {
+    supabase
+      .channel('custom-all-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, (payload) => {
+        //console.log('Change received!', payload)
+        if (payload.eventType == 'INSERT') entries.value.push(payload.new)
+        if (payload.eventType == 'DELETE') {
+          const index = getEntryIndexById(payload.old.id)
+          entries.value.splice(index, 1)
+        }
+      })
+      .subscribe()
+  }
   const init = async () => {
     await loadEntries()
+    if (entriesLoaded.value) subscribeEntries()
   }
+  // const destroy = () => {
+  //   subscription = null
+  // }
   const addEntry = async (addEntryForm) => {
     const newEntry = Object.assign({}, addEntryForm, {
       completed: false,
       //order: generateOrderNumber(),
     })
     await supabase.from('entries').insert(newEntry)
-    await loadEntries(false)
+    //await loadEntries(false)
   }
   const updateEntry = async (entryId, updates, refresh = true) => {
     const { error } = await supabase.from('entries').update(updates).eq('id', entryId)
     if (error) {
       useShowErrorMessage(error)
     } else {
-      if (refresh) await loadEntries(false)
+      if (refresh) {
+        //await loadEntries(false)
+      }
     }
+  }
+  const deleteEntry = async (entry) => {
+    const { error } = await supabase.from('entries').delete().eq('id', entry.id)
+    if (error) {
+      useShowErrorMessage(error)
+    }
+  }
+  const getEntryIndexById = function (id) {
+    return entries.value.findIndex((entry) => entry.id === id)
   }
   const setCompleted = async (entry, val) => {
     entry.completed = val
@@ -72,6 +101,7 @@ export const useStoreEntries = defineStore('entries', () => {
     init,
     addEntry,
     updateEntry,
+    deleteEntry,
     setCompleted,
   }
 })

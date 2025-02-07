@@ -37,10 +37,11 @@
               :key="entry.id"
               left-color="grey"
               right-color="grey"
-              @left="slideEntry($event, entry)"
+              @left="deleteEntry($event, entry)"
+              @right="toggleEntry($event, entry)"
             >
               <template v-slot:left>
-                <q-icon name="done" />
+                <q-icon name="delete" />
               </template>
               <template v-slot:right>
                 <q-icon name="done" />
@@ -108,10 +109,15 @@ const selectValue = async () => {
   //options.value = originalOptions.value
   selectedValue.value = null
 }
-const slideEntry = async (e, entry) => {
+const toggleEntry = async (e, entry) => {
   await storeEntries.setCompleted(entry, !entry.completed)
   //e.reset()
 }
+const deleteEntry = async (e, entry) => {
+  await storeEntries.deleteEntry(entry)
+  //e.reset()
+}
+
 const addNewValue = async () => {
   console.log('new:' + selectedValue.value)
   if (selectedValue.value) {
