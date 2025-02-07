@@ -5,7 +5,10 @@
         @refresh="refresh"
         inline
       >
-        <q-list class="entries">
+        <q-list
+          class="entries"
+          v-if="storeEntries.entriesLoaded"
+        >
           <q-item-label class="bg-white text-white q-px-none">
             <!-- @keyup.enter.stop="selectValue" -->
             <q-select
@@ -67,6 +70,16 @@
             </q-slide-item>
           </template>
         </q-list>
+        <div
+          class="text-center q-pa-xl"
+          v-if="!storeEntries.entriesLoaded"
+        >
+          <q-spinner
+            color="primary"
+            size="3em"
+            :thickness="10"
+          />
+        </div>
       </q-pull-to-refresh>
     </div>
   </q-page>

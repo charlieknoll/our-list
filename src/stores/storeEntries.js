@@ -51,6 +51,10 @@ export const useStoreEntries = defineStore('entries', () => {
           const index = getEntryIndexById(payload.old.id)
           entries.value.splice(index, 1)
         }
+        if (payload.eventType == 'UPDATE') {
+          const index = getEntryIndexById(payload.old.id)
+          entries.value[index] = payload.new
+        }
       })
       .subscribe()
   }
@@ -72,6 +76,8 @@ export const useStoreEntries = defineStore('entries', () => {
   const updateEntry = async (entryId, updates, refresh = true) => {
     const { error } = await supabase.from('entries').update(updates).eq('id', entryId)
     if (error) {
+      // console.log(error)
+      // console.log(data)
       useShowErrorMessage(error)
     } else {
       if (refresh) {
