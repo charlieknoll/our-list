@@ -73,7 +73,7 @@ export const useStoreEntries = defineStore('entries', () => {
     const entry = entries.value[getEntryIndexById(entryId)]
     const oldEntry = JSON.parse(JSON.stringify(entry))
     Object.assign(entry, updates)
-    const { error } = await supabase.from('entries').update(updates).eq('idz', entryId)
+    const { error } = await supabase.from('entries').update(updates).eq('id', entryId)
     if (error) {
       useShowErrorMessage(error)
       Object.assign(entry, oldEntry)
