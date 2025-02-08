@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, toRaw, nextTick } from 'vue'
 import { supabase } from 'src/supabase/supabase'
 import { useShowErrorMessage } from 'src/use/useShowErrorMessage'
 
@@ -62,42 +62,48 @@ export const useStoreEntries = defineStore('entries', () => {
     await loadEntries()
     if (entriesLoaded.value) subscribeEntries()
   }
-  // const destroy = () => {
-  //   subscription = null
-  // }
   const addEntry = async (addEntryForm) => {
     const newEntry = Object.assign({}, addEntryForm, {
       completed: false,
-      //order: generateOrderNumber(),
     })
-    await supabase.from('entries').insert(newEntry)
-    //await loadEntries(false)
+    const { error } = await supabase.from('entries').insert(newEntry)
+    useShowErrorMessage(error)
   }
   const updateEntry = async (entryId, updates, refresh = true) => {
-    const { error } = await supabase.from('entries').update(updates).eq('id', entryId)
+    const entry = entries.value[getEntryIndexById(entryId)]
+    const oldEntry = JSON.parse(JSON.stringify(entry))
+    Object.assign(entry, updates)
+    const { error } = await supabase.from('entries').update(updates).eq('idz', entryId)
     if (error) {
-      // console.log(error)
-      // console.log(data)
       useShowErrorMessage(error)
-    } else {
-      if (refresh) {
-        //await loadEntries(false)
-      }
+      Object.assign(entry, oldEntry)
+    }
+    if (refresh) {
+      //await loadEntries(false)
     }
   }
   const deleteEntry = async (entry) => {
     const { error } = await supabase.from('entries').delete().eq('id', entry.id)
-    if (error) {
-      useShowErrorMessage(error)
-    }
+    useShowErrorMessage(error)
   }
   const getEntryIndexById = function (id) {
     return entries.value.findIndex((entry) => entry.id === id)
   }
   const setCompleted = async (entry, val) => {
-    entry.completed = val
+    //entry.completed = val
     await updateEntry(entry.id, { completed: val }, false)
   }
+  // const removeSlideItemIfExists = (entryId) => {
+  //   // hacky fix: when deleting (after sorting),
+  //   // sometimes the slide item is not removed
+  //   // from the dom. this will remove the slide
+  //   // item from the dom if it still exists
+  //   // (after entry removed from entries array)
+  //   nextTick(() => {
+  //     const slideItem = document.querySelector(`#id-${entryId}`)
+  //     if (slideItem) slideItem.remove()
+  //   })
+  // }
   return {
     entries,
     entriesLoaded,
