@@ -72,6 +72,7 @@
               <q-item
                 clickable
                 v-close-popup
+                @click="storeAuth.logoutUser"
                 ><q-item-section>Signout</q-item-section></q-item
               >
             </q-list>
@@ -97,6 +98,8 @@
 <script setup>
 import ToolbarTitle from 'components/ToolbarTitle.vue'
 import QsBtn from 'components/QsBtn.vue'
+import { useStoreAuth } from 'src/stores/storeAuth'
+const storeAuth = useStoreAuth()
 </script>
 <style>
 .icon-with-strikethrough {

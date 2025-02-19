@@ -91,12 +91,11 @@ import { onMounted, ref } from 'vue'
 //data
 const storeEntries = useStoreEntries()
 onMounted(async () => {
-  await storeEntries.init()
   originalOptions.value = storeEntries.entries.map((e) => e.name)
   options.value = originalOptions.value
 })
 const refresh = async (done) => {
-  await storeEntries.init()
+  await storeEntries.loadEntries()
   done()
 }
 const selectedValue = ref(null)

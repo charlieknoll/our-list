@@ -4,6 +4,10 @@ List maintenance app
 
 ## TODO
 
+- settings page
+- dark mode support
+- google login
+
 - add list support
 - add category support
 - add category default item support

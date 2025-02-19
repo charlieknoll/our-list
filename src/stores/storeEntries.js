@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia'
-import { ref, computed, toRaw, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 import { supabase } from 'src/supabase/supabase'
 import { useShowErrorMessage } from 'src/use/useShowErrorMessage'
+import { useStoreAuth } from 'src/stores/storeAuth'
+
+let entriesChannel
 
 export const useStoreEntries = defineStore('entries', () => {
   //state
@@ -26,10 +29,17 @@ export const useStoreEntries = defineStore('entries', () => {
   //actions
   const loadEntries = async (showLoader = true) => {
     if (showLoader) entriesLoaded.value = false
+    // const { data, error } = await supabase
+    //   .from('entries')
+    //   .select()
+    //   .order('completed', { ascending: true })
+    console.log('Loading...')
+    const storeAuth = useStoreAuth()
     const { data, error } = await supabase
-      .from('entries')
-      .select()
-      .order('completed', { ascending: true })
+      .rpc('get_entries')
+      .eq('user_id', storeAuth.userDetails.id)
+      .order('category_order', { ascending: true })
+      .order('id', { ascending: true })
     if (error) {
       //console.error('error', error)
       useShowErrorMessage(error)
@@ -42,29 +52,49 @@ export const useStoreEntries = defineStore('entries', () => {
     }
   }
   const subscribeEntries = () => {
-    supabase
+    const storeAuth = useStoreAuth()
+    entriesChannel = supabase
       .channel('custom-all-channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, (payload) => {
-        //console.log('Change received!', payload)
-        if (payload.eventType == 'INSERT') entries.value.push(payload.new)
-        if (payload.eventType == 'DELETE') {
-          const index = getEntryIndexById(payload.old.id)
-          entries.value.splice(index, 1)
-        }
-        if (payload.eventType == 'UPDATE') {
-          const index = getEntryIndexById(payload.old.id)
-          entries.value[index] = payload.new
-        }
-      })
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'entries',
+          filter: `user_id=eq.${storeAuth.userDetails.id}`,
+        },
+        (payload) => {
+          console.log('Change received!', payload)
+          if (payload.eventType == 'INSERT') entries.value.push(payload.new)
+          if (payload.eventType == 'DELETE') {
+            const index = getEntryIndexById(payload.old.id)
+            entries.value.splice(index, 1)
+          }
+          if (payload.eventType == 'UPDATE') {
+            const index = getEntryIndexById(payload.old.id)
+            entries.value[index] = payload.new
+          }
+        },
+      )
       .subscribe()
   }
+
+  const unsubscribeEntries = () => {
+    supabase.removeChannel(entriesChannel)
+  }
+  const clearEntries = () => {
+    entries.value = []
+  }
+
   const init = async () => {
     await loadEntries()
     if (entriesLoaded.value) subscribeEntries()
   }
   const addEntry = async (addEntryForm) => {
+    const storeAuth = useStoreAuth()
     const newEntry = Object.assign({}, addEntryForm, {
       completed: false,
+      user_id: storeAuth.userDetails.id,
     })
     const { error } = await supabase.from('entries').insert(newEntry)
     useShowErrorMessage(error)
@@ -109,11 +139,15 @@ export const useStoreEntries = defineStore('entries', () => {
     entriesLoaded,
     grouped,
     groupedEntries,
+
     //actions
     init,
     addEntry,
     updateEntry,
     deleteEntry,
     setCompleted,
+    loadEntries,
+    unsubscribeEntries,
+    clearEntries,
   }
 })
